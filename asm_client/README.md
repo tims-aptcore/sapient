@@ -8,7 +8,7 @@ The ASM software can be compiled on Linux or Windows. It is intended that each A
 It is intended that new sensors will be added to the software. At compile time, all sensors are compiled but at run-time only one is selected via the asm_client.conf file.
 
 ### Pre-requisites
-Linux - Scons whould be installed.
+Linux - Scons will be required.
 Windows - Visual Studio should be used to build the ASM.
 
 ### Building
@@ -29,7 +29,7 @@ In the root directory are a number of *.conf files. There is one for each sensor
 2. If a new Hardware platform is required add a new directory into Hardware and realise the functions the Hardware.h in the new code. It is not intended that the software for an ASM will be able to run on multiple platforms. These hardware functions are intended for general initialisation. Hardware functions specific to as ASM should be put in the Sensor. For example the Serial functions used in AptCore_USound ASM. 
 
 ## License
-This project is licensed under teh MIT Licesnse - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
 
