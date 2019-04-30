@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Hardware">
+      <UniqueIdentifier>{bd3505d1-7f83-4812-b73f-170ab93ee2a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{b92feaec-3dc2-46c2-949b-92e0873a96de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sensor">
+      <UniqueIdentifier>{83624348-89e2-499e-a27a-4f164c7d7ac0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\XML">
+      <UniqueIdentifier>{983bb947-6dda-47e8-8a1f-b238a6a4af65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{83ae72bf-888c-4dc2-aab5-990fc79aa6b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sensor\AptCorePIR">
+      <UniqueIdentifier>{4c3d19cf-6e72-40c1-8227-28bc5f7e9b46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sensor\AptCoreUSound">
+      <UniqueIdentifier>{749ecb1a-ffc1-4e88-96df-47409b9c8f80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hardware\RaspPiHW">
+      <UniqueIdentifier>{86cd00f7-c7b1-4a3e-8ae3-484ccdffcf18}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AsmClient.cpp" />
+    <ClCompile Include="Network\Network.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\XML\Parser.cpp">
+      <Filter>Network\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\XML\Reader.cpp">
+      <Filter>Network\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\XML\Writer.cpp">
+      <Filter>Network\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\DetectionReport.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\SensorRegistration.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\SensorTask.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\SensorTaskACK.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\StatusReport.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\XML\NetworkStream.cpp">
+      <Filter>Network\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Log.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Utils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\TcpClient.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Hardware\RaspPiHW\RaspPiHW.cpp">
+      <Filter>Hardware\RaspPiHW</Filter>
+    </ClCompile>
+    <ClCompile Include="Sensor\AptCoreUSound\Modbus.cpp">
+      <Filter>Sensor\AptCoreUSound</Filter>
+    </ClCompile>
+    <ClCompile Include="Sensor\AptCorePIR\AptCorePIR.cpp">
+      <Filter>Sensor\AptCorePIR</Filter>
+    </ClCompile>
+    <ClCompile Include="Sensor\AptCoreUSound\AptCoreUSound.cpp">
+      <Filter>Sensor\AptCoreUSound</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Hardware\Hardware.h">
+      <Filter>Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Network.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensor\Sensor.h">
+      <Filter>Sensor</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\XML\NetworkStream.h">
+      <Filter>Network\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\XML\Parser.h">
+      <Filter>Network\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\XML\Reader.h">
+      <Filter>Network\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\XML\Stream.h">
+      <Filter>Network\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\XML\Writer.h">
+      <Filter>Network\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\DetectionReport.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Message.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\SensorRegistration.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\SensorTask.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\SensorTaskACK.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\StatusReport.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Config.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Log.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Utils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ConvertUTF.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="AsmClient.h" />
+    <ClInclude Include="Utils\TcpClient.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Hardware\RaspPiHW\RaspPiHW.h">
+      <Filter>Hardware\RaspPiHW</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensor\AptCoreUSound\Modbus.h">
+      <Filter>Sensor\AptCoreUSound</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensor\AptCorePIR\AptCorePIR.h">
+      <Filter>Sensor\AptCorePIR</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensor\AptCoreUSound\AptCoreUSound.h">
+      <Filter>Sensor\AptCoreUSound</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="asm_client.conf" />
+  </ItemGroup>
+</Project>

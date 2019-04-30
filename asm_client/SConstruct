@@ -1,0 +1,24 @@
+import glob
+
+# Enable warnings and optimisation
+env = Environment( CFLAGS = '-Wall -O1 -I.' )
+
+# Read the required 'target' parameter and set target specific build options
+target = ARGUMENTS.get('target')
+if target == 'zynq':
+  env.Append( CPPDEFINES = {'TARGET_ZYNQ':None} )
+  env.Replace( CXX = '/path/to/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin/arm-linux-gnueabihf-g++' )
+elif target == 'rpi':
+  env.Append( CPPDEFINES = {'TARGET_RPI':None}, LIBS = 'wiringPi' )
+elif target == 'clang':
+  env.Replace( CXX = 'clang++-4.0' )
+elif not target == 'linux':
+  print( "The target parameter must be set to a known value, e.g. 'scons target=rpi'" )
+  Exit( 1 )
+
+# Define the EasyLogger log file name and specify the required C++11 standard
+env.Append( CPPDEFINES = {'ELPP_DEFAULT_LOG_FILE':'\\"asm_client.log\\"'}, CXXFLAGS = '-std=c++0x' ) 
+
+# Build and return the executable from all the sources files
+prog = env.Program( 'asm_client', Glob('*.cpp') + Glob('**/*.cpp')+ Glob('**/**/*.cpp') )
+Return( 'prog' )
