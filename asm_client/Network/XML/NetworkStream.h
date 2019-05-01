@@ -37,7 +37,6 @@ private:
     class TcpClient *tcpclient;
     std::string hostname;
     int port;
-    int timeout_ms;
 
     unsigned char writeBuffer[WRITE_BUFFER_SIZE];
     int writeBufferUsed;

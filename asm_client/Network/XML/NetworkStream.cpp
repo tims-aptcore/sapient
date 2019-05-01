@@ -49,8 +49,6 @@ bool NetworkStream::Open( int timeout )
     if (returnCode == TCPCLIENT_ERR_SETTING_SOCKET_OPT)
         LOG( WARNING ) << "Failed to set socket option";
 
-    timeout_ms = timeout;
-
     return connected;
 }
 
@@ -68,7 +66,7 @@ bool NetworkStream::Read( unsigned char *pOctets, size_t iOctets, size_t &iRead 
     if (tcpclient == nullptr) return false;
 
     int length;
-    TcpClientErrno returnCode = tcpclient->Read( timeout_ms, pOctets, iOctets, &length );
+    TcpClientErrno returnCode = tcpclient->Read( 0, pOctets, iOctets, &length );
     iRead = length;
 
     if (returnCode == TCPCLIENT_ERR_INVALID_STATE)
