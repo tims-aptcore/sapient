@@ -7,14 +7,14 @@
 #include "../Hardware.h"
 #include "../../AsmClient.h"
 
-#define ELPP_DEFAULT_LOGGER "hardware_rpi"
+#define ELPP_DEFAULT_LOGGER "hardware"
 #include "../../Utils/Log.h"
 #include "../../Utils/Config.h"
 #include "../../Utils/Utils.h"
 
 RaspPiHW::RaspPiHW()
 {
-    el::Logger* mainLogger = el::Loggers::getLogger( "hardware_rpi" );
+    el::Logger* mainLogger = el::Loggers::getLogger( "hardware" );
 }
 
 RaspPiHW::~RaspPiHW()
