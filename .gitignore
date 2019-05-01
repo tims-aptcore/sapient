@@ -1,5 +1,11 @@
+# asm_client executable
+asm_client
+
 # Prerequisites
 *.d
+
+# SCons database
+.sconsign.dblite
 
 # Compiled Object files
 *.slo
