@@ -262,7 +262,11 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
 
             StatusReport statusReport( statusReportData );
             writer->open( networkStream );
-            statusReport.Write( writer );
+            if (statusReport.Write( writer ) == false)
+            {
+                LOG( INFO ) << "Failed to send heartbeat message. Closing connection.";
+                networkStream->Close();
+            }
 
             status.newStatus = false;
             lastHeartbeatTime = currentTime;
@@ -271,7 +275,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
         status.detectionsReported = false;
         if (data.detections.size() && currentTime > lastDetectionTime + detectionInterval)
         {
-            LOG( INFO ) << "Sending detection " << data.detections.size() << " messages...";
+            LOG( INFO ) << "Sending " << data.detections.size() << " detection messages...";
 
             struct DetectionReportData detectionReportData;
 
@@ -325,7 +329,11 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
 
                 DetectionReport detectionReport( &detectionReportData );
                 writer->open( networkStream );
-                detectionReport.Write( writer );
+                if (detectionReport.Write( writer ) == false)
+                {
+                    LOG( INFO ) << "Failed to send detection messages. Closing connection.";
+                    networkStream->Close();
+                }
             }
 
             delete detectionReportData.rangeBearing;
