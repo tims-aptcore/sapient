@@ -75,7 +75,7 @@ public:
     }
 
     // Write message using XML Writer
-    virtual void Write( XML::Writer *w );
+    virtual bool Write( XML::Writer *w );
 
 private:
     StatusReportData *data;

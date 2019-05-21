@@ -52,7 +52,7 @@ static void WriteStatus( XML::Writer *w, const char *level, const char *type, st
     }
 }
 
-void StatusReport::Write( XML::Writer *w )
+bool StatusReport::Write( XML::Writer *w )
 {
     w->writeStartElement( "StatusReport" );
 
@@ -116,5 +116,5 @@ void StatusReport::Write( XML::Writer *w )
     WriteStatus( w, "Sensor", "PD", data->probabilityOfDetection );
     WriteStatus( w, "Sensor", "FAR", data->falseAlarmRate );
 
-    w->writeEndElement();
+    return w->writeEndElement();
 }

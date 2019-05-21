@@ -64,7 +64,7 @@ static void WriteBehaviour( XML::Writer *w, const char *type, std::string confid
     }
 }
 
-void DetectionReport::Write( XML::Writer *w )
+bool DetectionReport::Write( XML::Writer *w )
 {
     w->writeStartElement( "DetectionReport" );
 
@@ -154,5 +154,5 @@ void DetectionReport::Write( XML::Writer *w )
     WriteBehaviour( w, "Loitering", data->humanLoiteringConfidence );
     WriteBehaviour( w, "Crawling", data->humanCrawlingConfidence );
 
-    w->writeEndElement();
+    return w->writeEndElement();
 }

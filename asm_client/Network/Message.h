@@ -14,7 +14,7 @@ class Message
 public:
     Message( std::string description ) { _description = description; }
 
-    virtual void Write( XML::Writer *w ) {};
+    virtual bool Write( XML::Writer *w ) = 0;
 
     virtual std::string GetDescription() { return _description; }
 

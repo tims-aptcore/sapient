@@ -291,7 +291,7 @@ static void WriteModeDefinition( XML::Writer *w, const SensorRegistrationData *d
     w->writeEndElement();
 }
 
-void SensorRegistration::Write( XML::Writer *w )
+bool SensorRegistration::Write( XML::Writer *w )
 {
     w->writeStartElement( "SensorRegistration" );
 
@@ -305,5 +305,5 @@ void SensorRegistration::Write( XML::Writer *w )
 
     WriteModeDefinition( w, data );
 
-    w->writeEndElement();
+    return w->writeEndElement();
 }

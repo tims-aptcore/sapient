@@ -6,7 +6,7 @@
 #include "SensorTaskACK.h"
 #include "XML/Writer.h"
 
-void SensorTaskACK::Write( XML::Writer *w )
+bool SensorTaskACK::Write( XML::Writer *w )
 {
     w->writeStartElement( "SensorTaskACK" );
 
@@ -24,5 +24,5 @@ void SensorTaskACK::Write( XML::Writer *w )
         w->writeStringElement( "reason", data->reason );
     }
 
-    w->writeEndElement();
+    return w->writeEndElement();
 }
