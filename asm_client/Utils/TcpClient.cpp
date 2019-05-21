@@ -237,27 +237,43 @@ TcpClientErrno TcpClient::Read( int timeout, void *data, int max_length, int *le
 
 TcpClientErrno TcpClient::Write( void *data, int length )
 {
-    int write_length = 1, remainder = length;
+    fd_set writefds;
+    struct timeval timeout_struct = { 0 };
+    int space_available = 1, write_length = 1, remainder = length;
     char *ptr = (char*)data;
 
     if (state == NULL) return TCPCLIENT_ERR_INVALID_STATE;
 
     if (state->connected == 0) return TCPCLIENT_ERR_NOT_CONNECTED;
 
-    while (write_length > 0 && remainder > 0)
-    {
-        write_length = remainder > CHUNK_SIZE ? CHUNK_SIZE : remainder;
+    FD_ZERO( &writefds );
+    FD_SET( state->client_sockfd, &writefds );
 
-        // Write up to CHUNK_SIZE bytes at a time
-        write_length = send( state->client_sockfd, ptr, write_length, MSG_NOSIGNAL );
-        if (write_length == -1)
+    while (space_available > 0 && write_length > 0 && remainder > 0)
+    {
+        space_available = select( (int)state->client_sockfd + 1, NULL, &writefds, NULL, &timeout_struct );
+
+        // See if we can send data
+        if (space_available < 0)
         {
             Disconnect();
             return TCPCLIENT_ERR_CONNECTION_LOST;
         }
+        else if (space_available > 0)
+        {
+            write_length = remainder > CHUNK_SIZE ? CHUNK_SIZE : remainder;
+ 
+            // Write up to CHUNK_SIZE bytes at a time
+            write_length = send( state->client_sockfd, ptr, write_length, MSG_NOSIGNAL );
+            if (write_length == -1)
+            {
+                Disconnect();
+                return TCPCLIENT_ERR_CONNECTION_LOST;
+            }
 
-        ptr += write_length;
-        remainder -= write_length;
+            ptr += write_length;
+            remainder -= write_length;
+        }
     }
     if (remainder > 0)
     {
