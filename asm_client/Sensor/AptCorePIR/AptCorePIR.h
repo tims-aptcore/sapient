@@ -11,9 +11,6 @@
 
 #define MAX_SENSORS 4
 
-struct ProcessorRadarTrack;
-struct ProcessorRadarParameters;
-
 class AptCorePIR : public Sensor
 {
 public:
