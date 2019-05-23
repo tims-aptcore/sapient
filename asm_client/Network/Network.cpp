@@ -291,7 +291,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             for (detection = data.detections.begin(); detection != data.detections.end(); detection++)
             {
                 float bearing = fmodf( status.compassBearing + detection->direction + 360.0f, 360.0f );
-                float offsetAngle = fmodf( task.bearing - bearing + 180.0f, 360.0f ) - 180.0f;
+                float offsetAngle = fmodf( bearing - task.bearing + 540.0f, 360.0f ) - 180.0f;
 
                 if (detection->range < task.minRange || detection->range > task.maxRange) continue;
                 if (fabs( offsetAngle ) > task.horizontalExtent / 2.0) continue;
