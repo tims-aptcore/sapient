@@ -65,6 +65,7 @@ void Network::Initialise( const char *configFilename )
     registrationTimeout = config.GetDoubleValue( "network", "registrationTimeout", 5.0 );
     heartbeatInterval = (int)config.GetLongValue( "network", "heartbeatInterval", 10 );
     detectionInterval = config.GetDoubleValue( "network", "detectionInterval", 1.0 );
+    suppressDetectionsDuringTamper = (int)config.GetLongValue( "network", "suppressDetectionsDuringTamper", 0 );
     fieldOfViewType = config.GetValue( "network", "fieldOfViewType", "RangeBearing" );
 
     statusReportData->activeTaskID = "0";
