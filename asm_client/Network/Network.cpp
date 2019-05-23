@@ -295,6 +295,8 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
                 if (detection->range < task.minRange || detection->range > task.maxRange) continue;
                 if (fabs( offsetAngle ) > task.horizontalExtent / 2.0) continue;
 
+                if (status.tamperStatus == AsmClientStatus::TAMPER_ACTIVE && suppressDetectionsDuringTamper) continue;
+
                 detectionReportData.objectID = std::to_string( detection->id );
 
                 detectionReportData.rangeBearing->r = std::to_string( detection->range );
@@ -339,6 +341,10 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             delete detectionReportData.rangeBearing;
             delete detectionReportData.objectDopplerSpeed;
 
+            if (status.tamperStatus == AsmClientStatus::TAMPER_ACTIVE && suppressDetectionsDuringTamper)
+            {
+                LOG( INFO ) << "Suppressed " << data.detections.size() << " detections while tamper active";
+            }
             lastDetectionTime = currentTime;
         }
     }

@@ -44,6 +44,7 @@ private:
     int heartbeatInterval;
     double lastHeartbeatTime;
     std::string sensorType;
+    int suppressDetectionsDuringTamper;
     std::string fieldOfViewType;
 
     struct StatusReportData *statusReportData;
