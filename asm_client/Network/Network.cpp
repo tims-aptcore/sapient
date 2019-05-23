@@ -313,20 +313,26 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
                 detectionReportData.vehicleConfidence = std::to_string( detection->vehicleConfidence );
                 detectionReportData.unknownConfidence = std::to_string( detection->unknownConfidence );
 
-                //TODO Add more detailed confidence
-                /*
-                std::string vehicleTwoWheelConfidence;
-                std::string vehicleFourWheelConfidence;
-                std::string vehicleFourWheelHeavyConfidence;
-                std::string vehicleFourWheelMediumConfidence;
-                std::string vehicleFourWheelLightConfidence;
+                if (detection->vehicleTwoWheelConfidence + detection->vehicleFourWheelConfidence > 0)
+                {
+                    detectionReportData.vehicleTwoWheelConfidence = std::to_string( detection->vehicleTwoWheelConfidence );
+                    detectionReportData.vehicleFourWheelConfidence = std::to_string( detection->vehicleFourWheelConfidence );
+                }
+                if (detection->vehicleFourWheelHeavyConfidence +
+                    detection->vehicleFourWheelMediumConfidence +
+                    detection->vehicleFourWheelLightConfidence > 0)
+                {
+                    detectionReportData.vehicleFourWheelHeavyConfidence = std::to_string( detection->vehicleFourWheelHeavyConfidence );
+                    detectionReportData.vehicleFourWheelMediumConfidence = std::to_string( detection->vehicleFourWheelMediumConfidence );
+                    detectionReportData.vehicleFourWheelLightConfidence = std::to_string( detection->vehicleFourWheelLightConfidence );
+                }
 
-                std::string staticObjectConfidence;
-                */
                 detectionReportData.humanWalkingConfidence = std::to_string( detection->humanWalkingConfidence );
                 detectionReportData.humanRunningConfidence = std::to_string( detection->humanRunningConfidence );
                 detectionReportData.humanLoiteringConfidence = std::to_string( detection->humanLoiteringConfidence );
                 detectionReportData.humanCrawlingConfidence = std::to_string( detection->humanCrawlingConfidence );
+
+                detectionReportData.staticObjectConfidence = std::to_string( detection->staticObjectConfidence );
 
                 status.detectionsReported++;
 

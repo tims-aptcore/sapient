@@ -60,6 +60,12 @@ struct AsmClientData
         float humanRunningConfidence;
         float humanWalkingConfidence;
         float humanCrawlingConfidence;
+        float vehicleTwoWheelConfidence;
+        float vehicleFourWheelConfidence;
+        float vehicleFourWheelHeavyConfidence;
+        float vehicleFourWheelMediumConfidence;
+        float vehicleFourWheelLightConfidence;
+        float staticObjectConfidence;
         void *userData;
     };
     std::vector<struct Detection> detections;
