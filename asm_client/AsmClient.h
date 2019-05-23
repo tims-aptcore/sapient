@@ -59,6 +59,7 @@ struct AsmClientData
         float humanRunningConfidence;
         float humanWalkingConfidence;
         float humanCrawlingConfidence;
+        void *userData;
     };
     std::vector<struct Detection> detections;
 };
