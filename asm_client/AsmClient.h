@@ -34,7 +34,8 @@ struct AsmClientStatus
         NETWORK_NOT_CONNECTED,
         NETWORK_NO_LINK,
     } network;
-    bool detectionsReported;
+
+    int detectionsReported;
 };
 
 struct AsmClientData

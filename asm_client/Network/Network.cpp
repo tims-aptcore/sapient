@@ -257,8 +257,6 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             statusReportData->externalFault = status.externalFault ? "Fault" : "OK";
             statusReportData->clutter = data.clutter ? "High" : "Low";
 
-            LOG( INFO ) << "Sending heartbeat message...";
-
             statusReportData->timestamp = Get_Timestamp( std::chrono::system_clock::now() );
 
             StatusReport statusReport( statusReportData );
@@ -268,16 +266,17 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
                 LOG( INFO ) << "Failed to send heartbeat message. Closing connection.";
                 networkStream->Close();
             }
+            else
+            {
+                LOG( INFO ) << "Sent heartbeat message";
+            }
 
             status.newStatus = false;
             lastHeartbeatTime = currentTime;
         }
 
-        status.detectionsReported = false;
-        if (data.detections.size() && currentTime > lastDetectionTime + detectionInterval)
+        if (data.detections.size() > 0 && currentTime > lastDetectionTime + detectionInterval)
         {
-            LOG( INFO ) << "Sending " << data.detections.size() << " detection messages...";
-
             struct DetectionReportData detectionReportData;
 
             detectionReportData.timestamp = data.timestamp;
@@ -287,6 +286,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             detectionReportData.rangeBearing = new DetectionReportLocationRB();
             detectionReportData.objectDopplerSpeed = new DetectionReportValue();
 
+            status.detectionsReported = 0;
             std::vector<AsmClientData::Detection>::iterator detection;
             for (detection = data.detections.begin(); detection != data.detections.end(); detection++)
             {
@@ -328,7 +328,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
                 detectionReportData.humanLoiteringConfidence = std::to_string( detection->humanLoiteringConfidence );
                 detectionReportData.humanCrawlingConfidence = std::to_string( detection->humanCrawlingConfidence );
 
-                status.detectionsReported = true;
+                status.detectionsReported++;
 
                 DetectionReport detectionReport( &detectionReportData );
                 writer->open( networkStream );
@@ -346,7 +346,16 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             {
                 LOG( INFO ) << "Suppressed " << data.detections.size() << " detections while tamper active";
             }
+            else if (networkStream->IsOpen())
+            {
+                LOG( INFO ) << "Sent " << status.detectionsReported << " of " << data.detections.size() << " detections";
+            }
+
             lastDetectionTime = currentTime;
+        }
+        else if(currentTime > lastDetectionTime + detectionInterval)
+        {
+            status.detectionsReported = 0;
         }
     }
 }
