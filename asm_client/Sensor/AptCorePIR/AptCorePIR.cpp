@@ -54,7 +54,7 @@ void AptCorePIR::Initialise( const char *configFilename )
         }
         else
         {
-            detection_num[t] = 0;
+            detection_num = 0;
             detection_active[t] = 0;
             // Initialise the gpio pins. Output with pull-ups.
             sys_command = "echo " + sensors[t].substr( 4 ) + " > /sys/class/gpio/export";
@@ -91,9 +91,9 @@ void AptCorePIR::Loop( const struct AsmClientTask &task, struct AsmClientData &d
             {
                 struct AsmClientData::Detection *detection = &data.detections[num_detections];
                 detection_active[t] = 1;
-                detection_num[t]++;
-                detection->id = detection_num[t];
-                LOG( INFO ) << "Detection sensor: " << t + 1 << " Detection number: " << detection_num[t];
+                detection_num++;
+                detection->id = detection_num;
+                LOG( INFO ) << "Detection sensor: " << t + 1 << " Detection number: " << detection_num;
                 detection->range = 6;
                 detection->direction = (float)(t * 90);
                 detection->directionError = 45;

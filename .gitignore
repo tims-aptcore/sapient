@@ -1,5 +1,5 @@
 # asm_client executable
-asm_client
+asm_client/asm_client
 
 # Prerequisites
 *.d

@@ -25,6 +25,6 @@ private:
     std::string sensors[MAX_SENSORS];
     int num_sensors;
 
-    int detection_num[MAX_SENSORS];
+    int detection_num;
     int detection_active[MAX_SENSORS];
 };
