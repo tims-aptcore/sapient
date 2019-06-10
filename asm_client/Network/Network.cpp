@@ -104,6 +104,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
         {
             if (reader->readStartElement( "sensorID" ))
             {
+                statusReportData->sensorID = "";
                 reader->readPCData( statusReportData->sensorID );
                 reader->readEndElement( false );
             }
