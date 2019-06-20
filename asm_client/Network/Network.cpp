@@ -168,10 +168,10 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
     else // Try connecting
     {
         statusReportData->sensorID = "";
-        if (status.network != AsmClientStatus::NETWORK_NO_LINK &&
-            status.network != AsmClientStatus::NETWORK_NOT_CONNECTED)
+        if (status.network != AsmClientStatus::NETWORK_CONNECTING)
         {
             LOG( INFO ) << "Connecting to " << hostname << " : " << port << "...";
+            status.network = AsmClientStatus::NETWORK_CONNECTING;
         }
         if (networkStream->Open( timeout ))
         {
@@ -205,9 +205,10 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             }
             else
             {
-                if (status.network != AsmClientStatus::NETWORK_NOT_CONNECTED)
+                if (status.network == AsmClientStatus::NETWORK_NO_LINK)
                     LOG( INFO ) << "Link is up";
-                status.network = AsmClientStatus::NETWORK_NOT_CONNECTED;
+                if (status.network != AsmClientStatus::NETWORK_CONNECTING)
+                    status.network = AsmClientStatus::NETWORK_NOT_CONNECTED;
             }
         }
     }

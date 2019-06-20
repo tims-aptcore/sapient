@@ -29,10 +29,11 @@ struct AsmClientStatus
 
     enum NetworkStatus
     {
-        NETWORK_REGISTERED,
-        NETWORK_NOT_REGISTERED,
-        NETWORK_NOT_CONNECTED,
         NETWORK_NO_LINK,
+        NETWORK_NOT_CONNECTED,
+        NETWORK_CONNECTING,
+        NETWORK_NOT_REGISTERED,
+        NETWORK_REGISTERED,
     } network;
 
     int detectionsReported;
