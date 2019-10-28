@@ -262,7 +262,7 @@ TcpClientErrno TcpClient::Write( void *data, int length )
         else if (space_available > 0)
         {
             write_length = remainder > CHUNK_SIZE ? CHUNK_SIZE : remainder;
- 
+
             // Write up to CHUNK_SIZE bytes at a time
             write_length = send( state->client_sockfd, ptr, write_length, MSG_NOSIGNAL );
             if (write_length == -1)
