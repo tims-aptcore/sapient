@@ -23,12 +23,12 @@
 
 Network::Network()
 {
+    el::Loggers::getLogger( "network" );
     networkStream = nullptr;
     reader = new XML::Reader();
     writer = new XML::Writer();
     statusReportData = new StatusReportData();
     defaultTask = new AsmClientTask();
-    el::Logger* mainLogger = el::Loggers::getLogger( "network" );
 }
 
 Network::~Network()

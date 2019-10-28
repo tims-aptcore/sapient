@@ -6,7 +6,7 @@
 #include <string.h>
 
 Parser::Parser() : 
-	_bEOF(false), _pStream(NULL), _iCursor(0), _iBuffer(0)
+	_pStream(NULL), _bEOF(false), _iBuffer(0), _iCursor(0)
 {
 }
 

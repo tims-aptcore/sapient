@@ -17,7 +17,7 @@ elif not target == 'linux':
   Exit( 1 )
 
 # Define the EasyLogger log file name and specify the required C++11 standard
-env.Append( CPPDEFINES = {'ELPP_DEFAULT_LOG_FILE':'\\"asm_client.log\\"'}, CXXFLAGS = '-std=c++0x' ) 
+env.Append( CPPDEFINES = {'ELPP_DEFAULT_LOG_FILE':'\\"asm_client.log\\"'}, CXXFLAGS = '-std=c++0x -Wall' ) 
 
 # Build and return the executable from all the sources files
 prog = env.Program( 'asm_client', Glob('*.cpp') + Glob('**/*.cpp')+ Glob('**/**/*.cpp') )

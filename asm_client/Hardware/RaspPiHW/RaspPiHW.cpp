@@ -14,7 +14,7 @@
 
 RaspPiHW::RaspPiHW()
 {
-    el::Logger* mainLogger = el::Loggers::getLogger( "hardware" );
+    el::Loggers::getLogger( "hardware" );
 }
 
 RaspPiHW::~RaspPiHW()

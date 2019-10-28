@@ -21,7 +21,7 @@
 
 AptCoreUSound::AptCoreUSound()
 {
-    el::Logger* mainLogger = el::Loggers::getLogger( "sensor" );
+    el::Loggers::getLogger( "sensor" );
     previous_trigger = 0;
 }
 
@@ -76,7 +76,7 @@ void AptCoreUSound::Initialise( const char *configFilename )
     max_range = (int*)malloc( num_sensors * sizeof( max_range ) );
     min_range = (int*)malloc( num_sensors * sizeof( min_range ) );
     track_range_diff = (int*)malloc( num_sensors * sizeof( track_range_diff ) );
-    track_lifetime = (unsigned int*)malloc( num_sensors * sizeof( track_lifetime ) );
+    track_lifetime = (int*)malloc( num_sensors * sizeof( track_lifetime ) );
     det_direction = (int*)malloc( num_sensors * sizeof( det_direction ) );
 
     for (index = 0; index < num_sensors; index++)
@@ -107,7 +107,6 @@ void AptCoreUSound::Initialise( const char *configFilename )
 
 void AptCoreUSound::Loop( const struct AsmClientTask &task, struct AsmClientData &data )
 {
-    static int i = 0;
     ModbusErrno returncode;
     int d, function, adu_length, datapoint, delay_ms;
     uint8_t *adu;
@@ -202,7 +201,7 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
     for (raw_det_loop = 0; raw_det_loop < (int)raw_detections[detector].size(); raw_det_loop++)
     {
         match_found = 0;
-        /* Cycle through the tracks*/
+        // Cycle through the tracks
         for (track_loop = 0; track_loop < (int)tracks[detector].size(); track_loop++)
         {
             // Check for a close match on range.

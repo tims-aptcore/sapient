@@ -25,7 +25,7 @@ class NetworkStream : public IInputStream, public IOutputStream
 {
 public:
     NetworkStream( std::string hostname, int port );
-    ~NetworkStream();
+    virtual ~NetworkStream();
     bool Open( int timeout );
     bool IsOpen();
     virtual bool Read( unsigned char *pOctets, size_t iOctets, size_t &iRead );
@@ -36,7 +36,6 @@ public:
 private:
     class TcpClient *tcpclient;
     std::string hostname;
-    int port;
 
     unsigned char writeBuffer[WRITE_BUFFER_SIZE];
     int writeBufferUsed;

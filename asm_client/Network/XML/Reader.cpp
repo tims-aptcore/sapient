@@ -15,14 +15,6 @@ namespace XML
 {
 
 // handles transcoding as needed for appending byte characters to a string.
-static void append(std::wstring &strValue, char ch, mbstate_t &state)
-{
-	wchar_t dest[4] = {0};
-	if ( mbrtowc(dest, &ch, 1, &state) > 0)
-		strValue += dest;
-}
-
-// handles transcoding as needed for appending byte characters to a string.
 static void append(std::string &strValue, char ch)
 {
 	strValue += (TCHAR)ch;

@@ -15,7 +15,7 @@
 
 AptCorePIR::AptCorePIR()
 {
-    el::Logger* mainLogger = el::Loggers::getLogger( "sensor" );
+    el::Loggers::getLogger( "sensor" );
 }
 
 AptCorePIR::~AptCorePIR()

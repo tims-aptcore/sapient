@@ -103,8 +103,6 @@ bool NetworkStream::Send( bool bTerminator )
 {
     if (tcpclient == nullptr) return false;
 
-    char *ptr = (char*)writeBuffer;
-
     if (bTerminator)
     {
         size_t iWrote;

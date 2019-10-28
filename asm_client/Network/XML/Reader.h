@@ -28,7 +28,7 @@ class Reader
 		size_t Skipped;
 
 		entry() : Children(false), Skipped(0) { };
-		entry(const entry &copy) : Children(copy.Children), Element(copy.Element), Skipped(copy.Skipped) { };
+		entry(const entry &copy) : Element(copy.Element), Children(copy.Children), Skipped(copy.Skipped) { };
 	};
 
 	Parser _parser;

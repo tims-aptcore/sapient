@@ -31,7 +31,7 @@ private:
     int *min_range;
     int *max_range;
     int *track_range_diff;
-    unsigned int *track_lifetime;
+    int *track_lifetime;
     int *det_direction;
 
     double previous_trigger;
@@ -42,10 +42,10 @@ private:
     };
     struct Track_Struct
     {
-        unsigned int id;
+        int id;
         int range;
         int amplitude;
-        unsigned int lifetime;
+        int lifetime;
         int matched;
         int active;
     };

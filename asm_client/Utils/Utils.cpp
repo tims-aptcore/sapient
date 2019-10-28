@@ -48,7 +48,9 @@ std::string Get_Timestamp( std::chrono::system_clock::time_point tp )
     // Generate the ISO 8601 timestamp from the seconds since the epoch
     char timestamp[] = "yyyy-mm-ddThh:mm:ss";
     std::time_t tp_time_t = std::chrono::system_clock::to_time_t( std::chrono::system_clock::time_point( tp_seconds_since_epoch ) );
+#ifdef _MSC_VER
 #pragma warning (disable: 4996)
+#endif
     if (strftime( timestamp, sizeof( timestamp ), "%FT%T", std::gmtime( &tp_time_t ) ) == 0)
         return "";
 

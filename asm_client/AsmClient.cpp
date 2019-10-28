@@ -58,7 +58,7 @@ int main( int argc, char* argv[] )
     Sensor *sensor = nullptr;
 
     START_EASYLOGGINGPP( argc, argv );
-    el::Logger* mainLogger = el::Loggers::getLogger( "main" );
+    el::Loggers::getLogger( "main" );
 
     CSimpleIniA config;
     SI_Error rc = config.LoadFile( CONFIG_FILENAME );
