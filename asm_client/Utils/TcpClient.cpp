@@ -235,7 +235,7 @@ TcpClientErrno TcpClient::Read( int timeout, void *data, int max_length, int *le
     return TCPCLIENT_ERR_NO_ERROR;
 }
 
-TcpClientErrno TcpClient::Write( void *data, int length )
+TcpClientErrno TcpClient::Write( const void *data, int length )
 {
     fd_set writefds;
     struct timeval timeout_struct = { 0 };

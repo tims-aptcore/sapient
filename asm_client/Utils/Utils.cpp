@@ -68,6 +68,7 @@ bool Network_Link_Down( std::string hostname )
         for (ifAddr = ifAddrs; ifAddr != NULL; ifAddr = ifAddr->ifa_next)
         {
             bool linkIsUp = ifAddr->ifa_flags & IFF_RUNNING;
+            if (ifAddr->ifa_addr == NULL) continue;
             if (ifAddr->ifa_addr->sa_family != AF_INET) continue;
             if (std::string( ifAddr->ifa_name ) == "lo") continue;
             freeifaddrs( ifAddrs );

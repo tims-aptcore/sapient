@@ -44,14 +44,14 @@ public:
 
     // Waits for data and then reads up to max_length bytes to data address
     // from the server. Actual number of bytes read provided in *length
-    // The read will wait for the specified number of microseconds before
+    // The read will wait for the specified number of milliseconds before
     // returning with no error and length set to zero if no data is received.
     // Returns 0 on success, otherwise an error code
     TcpClientErrno Read( int timeout, void *data, int max_length, int *length );
 
     // Writes the specified number of bytes from the data address to the server
     // Returns 0 on success, otherwise an error code
-    TcpClientErrno Write( void *data, int length );
+    TcpClientErrno Write( const void *data, int length );
 
 private:
     TcpClientErrno Set_Non_Blocking( int non_blocking );
