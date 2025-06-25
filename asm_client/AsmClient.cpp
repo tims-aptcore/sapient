@@ -29,8 +29,6 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define CONFIG_FILENAME "asm_client.conf"
-
 static int global_shutdown = 0;
 #ifdef __unix__
 static void main_signal_handler( int signal )
@@ -60,11 +58,19 @@ int main( int argc, char* argv[] )
     START_EASYLOGGINGPP( argc, argv );
     el::Loggers::getLogger( "main" );
 
+    // Check if the -f option has been used to specify the config file
+    const char *configFilename = "asm_client.conf";
+    char **arg = std::find( argv, argv + argc, std::string( "-f" ) );
+    if (arg != (argv + argc) && ++arg != (argv + argc))
+    {
+        configFilename = *arg;
+    }
+
     CSimpleIniA config;
-    SI_Error rc = config.LoadFile( CONFIG_FILENAME );
+    SI_Error rc = config.LoadFile( configFilename );
     if (rc < 0)
     {
-        LOG( ERROR ) << "Failed to load config file '" << CONFIG_FILENAME << "'";
+        LOG( ERROR ) << "Failed to load config file '" << configFilename << "'";
         throw "config.LoadFile returned " + std::to_string( rc );
     }
 
@@ -100,7 +106,7 @@ int main( int argc, char* argv[] )
     LOG( INFO ) << "Initialising...";
     try
     {
-        hardware->Initialise( CONFIG_FILENAME );
+        hardware->Initialise( configFilename );
     }
     catch (const char *msg)
     {
@@ -109,7 +115,7 @@ int main( int argc, char* argv[] )
     }
     try
     {
-        network->Initialise( CONFIG_FILENAME );
+        network->Initialise( configFilename );
     }
     catch (const char *msg)
     {
@@ -118,7 +124,7 @@ int main( int argc, char* argv[] )
     }
     try
     {
-        sensor->Initialise( CONFIG_FILENAME );
+        sensor->Initialise( configFilename );
     }
     catch (const char *msg)
     {
