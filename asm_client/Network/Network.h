@@ -50,6 +50,7 @@ private:
     double lastHeartbeatTime;
     std::string sensorType;
     int suppressDetectionsDuringTamper;
+    int suppressFovDuringTamper;
     std::string fieldOfViewType;
 
     struct StatusReportData *statusReportData;

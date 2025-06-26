@@ -76,6 +76,7 @@ void Network::Initialise( const char *configFilename )
     heartbeatInterval = (int)config.GetLongValue( "network", "heartbeatInterval", 10 );
     detectionInterval = config.GetDoubleValue( "network", "detectionInterval", 1.0 );
     suppressDetectionsDuringTamper = (int)config.GetLongValue( "network", "suppressDetectionsDuringTamper", 0 );
+    suppressFovDuringTamper = (int)config.GetLongValue( "network", "suppressFovDuringTamper", 0 );
     fieldOfViewType = config.GetValue( "network", "fieldOfViewType", "RangeBearing" );
 
     statusReportData->coverage = new StatusReportLocationRBC();
@@ -299,6 +300,12 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             statusReportData->fieldOfViewRBC->ehe = statusReportData->coverage->ehe;
             statusReportData->fieldOfViewRBC->ve = statusReportData->coverage->ve;
             statusReportData->fieldOfViewRBC->eve = statusReportData->coverage->eve;
+
+            if (status.tamperStatus == AsmClientStatus::TAMPER_ACTIVE && suppressFovDuringTamper)
+            {
+                statusReportData->fieldOfViewRBC->r = "0";
+                LOG( INFO ) << "Suppressed field of view while tamper active";
+            }
 
             if (status.compassValid)
             {
