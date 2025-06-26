@@ -28,7 +28,9 @@ public:
     virtual ~NetworkStream();
     bool Open( int timeout );
     bool IsOpen();
+    void Flush();
     virtual bool Read( unsigned char *pOctets, size_t iOctets, size_t &iRead );
+    virtual bool ReadWithTimeout( unsigned char *pOctets, size_t iOctets, size_t &iRead, int millisecs );
     virtual bool Write( unsigned char *pOctets, size_t iOctets, size_t &iWrote );
     virtual bool Send( bool bTerminator );
     virtual void Close();

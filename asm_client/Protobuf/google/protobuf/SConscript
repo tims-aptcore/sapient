@@ -1,0 +1,12 @@
+Import( 'env' )
+
+# Source files include with the full path and require C++ 11
+env = env.Clone( CPPPATH = ['../../'], CXXFLAGS = '-std=c++11' )
+
+# Build the lite version of the protobuf library
+lib = env.Library( 'protobuf-lite', Glob('*.cc') + Glob('io/*.cc') + Glob('stubs/*.cc') + Glob('util/*.cc') )
+
+# Build the protobuf compiler (using the code from the library)
+env.Program( 'protoc', Glob('compiler/*.cc') + Glob('compiler/cpp/*.cc') + lib )
+
+Return( 'lib' )
