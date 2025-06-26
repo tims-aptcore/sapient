@@ -10,9 +10,6 @@
     <Filter Include="Sensor">
       <UniqueIdentifier>{83624348-89e2-499e-a27a-4f164c7d7ac0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Network\XML">
-      <UniqueIdentifier>{983bb947-6dda-47e8-8a1f-b238a6a4af65}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{83ae72bf-888c-4dc2-aab5-990fc79aa6b5}</UniqueIdentifier>
     </Filter>
@@ -25,20 +22,14 @@
     <Filter Include="Hardware\RaspPiHW">
       <UniqueIdentifier>{86cd00f7-c7b1-4a3e-8ae3-484ccdffcf18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Network\ProtobufInterface">
+      <UniqueIdentifier>{61085f14-912e-4891-9fa3-8dd15e4c1b17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AsmClient.cpp" />
     <ClCompile Include="Network\Network.cpp">
       <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\XML\Parser.cpp">
-      <Filter>Network\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\XML\Reader.cpp">
-      <Filter>Network\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\XML\Writer.cpp">
-      <Filter>Network\XML</Filter>
     </ClCompile>
     <ClCompile Include="Network\DetectionReport.cpp">
       <Filter>Network</Filter>
@@ -54,9 +45,6 @@
     </ClCompile>
     <ClCompile Include="Network\StatusReport.cpp">
       <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\XML\NetworkStream.cpp">
-      <Filter>Network\XML</Filter>
     </ClCompile>
     <ClCompile Include="Utils\Log.cpp">
       <Filter>Utils</Filter>
@@ -79,6 +67,15 @@
     <ClCompile Include="Sensor\AptCoreUSound\AptCoreUSound.cpp">
       <Filter>Sensor\AptCoreUSound</Filter>
     </ClCompile>
+    <ClCompile Include="Network\ProtobufInterface\NetworkStream.cpp">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\ProtobufInterface\Reader.cpp">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\ProtobufInterface\Writer.cpp">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hardware\Hardware.h">
@@ -89,21 +86,6 @@
     </ClInclude>
     <ClInclude Include="Sensor\Sensor.h">
       <Filter>Sensor</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\XML\NetworkStream.h">
-      <Filter>Network\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\XML\Parser.h">
-      <Filter>Network\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\XML\Reader.h">
-      <Filter>Network\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\XML\Stream.h">
-      <Filter>Network\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\XML\Writer.h">
-      <Filter>Network\XML</Filter>
     </ClInclude>
     <ClInclude Include="Network\DetectionReport.h">
       <Filter>Network</Filter>
@@ -150,6 +132,21 @@
     </ClInclude>
     <ClInclude Include="Sensor\AptCoreUSound\AptCoreUSound.h">
       <Filter>Sensor\AptCoreUSound</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Ulid.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\ProtobufInterface\NetworkStream.h">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\ProtobufInterface\Reader.h">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\ProtobufInterface\Stream.h">
+      <Filter>Network\ProtobufInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\ProtobufInterface\Writer.h">
+      <Filter>Network\ProtobufInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

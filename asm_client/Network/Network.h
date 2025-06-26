@@ -7,7 +7,10 @@
 
 #include <string>
 
-namespace XML
+#include "sapient_msg/bsi_flex_335_v2_0/sapient_message.pb.h"
+namespace sap = sapient_msg::bsi_flex_335_v2_0;
+
+namespace ProtobufInterface
 {
     class Reader;
     class Writer;
@@ -25,10 +28,10 @@ public:
     void Loop( struct AsmClientStatus &status, struct AsmClientData &data, struct AsmClientTask &task );
 
 private:
-    std::string ParseSensorTask( struct AsmClientTask &task );
+    std::string ParseSensorTask( struct AsmClientTask &task, sap::Task& msg_task );
 
-    XML::Reader *reader;
-    XML::Writer *writer;
+    ProtobufInterface::Reader *reader;
+    ProtobufInterface::Writer *writer;
 
     NetworkStream *networkStream;
     std::string hostname;
@@ -41,6 +44,8 @@ private:
     double detectionInterval;
     double lastDetectionTime;
 
+    std::string nodeID;
+    std::string destID;
     int heartbeatInterval;
     double lastHeartbeatTime;
     std::string sensorType;

@@ -4,155 +4,266 @@
 //
 
 #include "DetectionReport.h"
-#include "XML/Writer.h"
+#include "ProtobufInterface/Writer.h"
 
-unsigned int DetectionReport::reportID = 1;
+#define ELPP_DEFAULT_LOGGER "network"
+#include "../Utils/Log.h"
 
-static void WriteRangeBearing( XML::Writer *w, const DetectionReportLocationRB *rb )
+#include "sapient_msg/bsi_flex_335_v2_0/sapient_message.pb.h"
+namespace sap = sapient_msg::bsi_flex_335_v2_0;
+
+#include <google/protobuf/util/time_util.h>
+#include <google/protobuf/util/json_util.h>
+
+
+static bool SetTimestamp( google::protobuf::Timestamp* timestamp, DetectionReportData* data )
 {
-    if (rb) {
-        w->writeStartElement( "rangeBearing" );
-        w->writeStringElement( "R", rb->r );
-        w->writeStringElement( "Az", rb->az );
-        w->writeStringElement( "eR", rb->er );
-        w->writeStringElement( "eAz", rb->eaz );
-        w->writeEndElement();
+    google::protobuf::Timestamp ts;
+    if( !google::protobuf::util::TimeUtil::FromString( data->timestamp, &ts ) )
+    {
+        LOG( ERROR ) << "DetectionReport failed to convert timestamp.";
+        return false;
+    }
+
+    timestamp->set_seconds( ts.seconds() );
+    timestamp->set_nanos(0);
+    return true;
+}
+
+
+static void SetRangeBearing( sap::RangeBearing* rb, const DetectionReportLocationRB *data_rb )
+{
+    rb->set_range(                   strtof( data_rb->r.c_str(),   NULL ) );
+    rb->set_azimuth(                 strtof( data_rb->az.c_str(),  NULL ) );
+    rb->set_range_error(             strtof( data_rb->er.c_str(),  NULL ) );
+    rb->set_azimuth_error(           strtof( data_rb->eaz.c_str(), NULL ) );
+
+    rb->set_coordinate_system( sap::RANGE_BEARING_COORDINATE_SYSTEM_DEGREES_M );       // TODO check what type used
+    rb->set_datum( sap::RANGE_BEARING_DATUM_PLATFORM );
+}
+
+
+static void SetTrackInfo( sap::DetectionReport* det, std::string type, const DetectionReportValue *v )
+{
+    if( v )
+    {
+        sap::DetectionReport::TrackObjectInfo *trk = det->add_track_info();
+        trk->set_type( type );
+        trk->set_value( v->value );
+        trk->set_error( stof( v->e ) );
     }
 }
 
-static void WriteTrackInfo( XML::Writer *w, const char *type, const DetectionReportValue *v )
+
+static void SetObjectInfo( sap::DetectionReport* det, std::string type, const DetectionReportValue *v )
 {
-    if (v) {
-        w->writeStartElement( "trackInfo" );
-        w->writeAttribute( "type", type );
-        w->writeAttribute( "value", v->value );
-        w->writeAttribute( "e", v->e );
-        w->writeEndElement();
+    if( v )
+    {
+        sap::DetectionReport::TrackObjectInfo *obj = det->add_object_info();
+        obj->set_type( type );
+        obj->set_value( v->value );
+        obj->set_error( stof( v->e ) );
     }
 }
 
-static void WriteObjectInfo( XML::Writer *w, const char *type, const DetectionReportValue *v )
+
+static bool SetDetectionReport( sap::DetectionReport* det, DetectionReportData* data )
 {
-    if (v) {
-        w->writeStartElement( "objectInfo" );
-        w->writeAttribute( "type", type );
-        w->writeAttribute( "value", v->value );
-        w->writeAttribute( "e", v->e );
-        w->writeEndElement();
-    }
-}
+    ulid::ULID rep_id;
+    ulid::EncodeTimeNow( rep_id );
+    std::string str_rep_id = ulid::Marshal( rep_id );
+    det->set_report_id( str_rep_id );
 
-static void WriteSubClassSize( XML::Writer *w, const char *value, std::string confidence )
-{
-    if (confidence.length()) {
-        w->writeStartElement( "subClass" );
-        w->writeAttribute( "level", "2" );
-        w->writeAttribute( "type", "Size" );
-        w->writeAttribute( "value", value );
-        w->writeStringElement( "confidence", confidence );
-        w->writeEndElement();
-    }
-}
+    std::string str_obj_id = ulid::Marshal( data->objectID );
+    det->set_object_id( str_obj_id );
 
-static void WriteBehaviour( XML::Writer *w, const char *type, std::string confidence )
-{
-    if (confidence.length()) {
-        w->writeStartElement( "behaviour" );
-        w->writeAttribute( "type", type );
-        w->writeStringElement( "confidence", confidence );
-        w->writeEndElement();
-    }
-}
-
-bool DetectionReport::Write( XML::Writer *w )
-{
-    w->writeStartElement( "DetectionReport" );
-
-    w->writeStringElement( "timestamp", data->timestamp );
-    if (data->sensorID.length()) {
-        w->writeStringElement( "sourceID", data->sensorID );
-    }
-    w->writeStringElement( "reportID", std::to_string( reportID++ ) );
-    w->writeStringElement( "objectID", data->objectID );
-    if (data->taskID.length()) {
-        w->writeStringElement( "taskID", data->taskID );
-    }
-    if (data->state.length()) {
-        w->writeStringElement( "state", data->state );
+    if( !data->taskID.IsZero() )
+    {
+        std::string str_task_id = ulid::Marshal( data->taskID );
+        det->set_task_id( str_task_id );
     }
 
-    WriteRangeBearing( w, data->rangeBearing );
-
-    w->writeStringElement( "detectionConfidence", data->detectionConfidence );
-
-    WriteTrackInfo( w, "confidence", data->trackConfidence );
-    WriteTrackInfo( w, "speed", data->trackSpeed );
-    WriteTrackInfo( w, "az", data->trackAZ );
-    WriteTrackInfo( w, "dR", data->trackDR );
-    WriteTrackInfo( w, "dAz", data->trackDAZ );
-
-    WriteObjectInfo( w, "dopplerSpeed", data->objectDopplerSpeed );
-    WriteObjectInfo( w, "dopplerAz", data->objectDopplerAz );
-    WriteObjectInfo( w, "majorLength", data->objectMajorLength );
-    WriteObjectInfo( w, "majorAxisAz", data->objectMajorAxisAz );
-    WriteObjectInfo( w, "minorLength", data->objectMinorLength );
-    WriteObjectInfo( w, "height", data->objectHeight );
-
-    if (data->humanConfidence.length()) {
-        w->writeStartElement( "class" );
-        w->writeAttribute( "type", "Human" );
-        w->writeStringElement( "confidence", data->humanConfidence );
-        w->writeEndElement();
+    if( data->state.length() )
+    {
+        det->set_state( data->state );
     }
 
-    if (data->vehicleConfidence.length()) {
-        w->writeStartElement( "class" );
-        w->writeAttribute( "type", "Vehicle" );
-        w->writeStringElement( "confidence", data->vehicleConfidence );
+    SetRangeBearing( det->mutable_range_bearing(), data->rangeBearing );
 
-        if (data->vehicleTwoWheelConfidence.length()) {
-            w->writeStartElement( "subClass" );
-            w->writeAttribute( "level", "1" );
-            w->writeAttribute( "type", "Vehicle Class" );
-            w->writeAttribute( "value", "2 Wheeled" );
-            w->writeStringElement( "confidence", data->vehicleTwoWheelConfidence );
-            w->writeEndElement();
+    det->set_detection_confidence( stof( data->detectionConfidence ) );
+
+    SetTrackInfo( det, "confidence", data->trackConfidence );
+    SetTrackInfo( det, "speed",      data->trackSpeed );
+    SetTrackInfo( det, "az",         data->trackAZ );
+    SetTrackInfo( det, "dR",         data->trackDR );
+    SetTrackInfo( det, "dAz",        data->trackDAZ );
+
+    SetObjectInfo( det, "dopplerSpeed", data->objectDopplerSpeed );
+    SetObjectInfo( det, "dopplerAz",    data->objectDopplerAz );
+    SetObjectInfo( det, "majorLength",  data->objectMajorLength );
+    SetObjectInfo( det, "majorAxisAz",  data->objectMajorAxisAz );
+    SetObjectInfo( det, "minorLength",  data->objectMinorLength );
+    SetObjectInfo( det, "height",       data->objectHeight );
+
+    sap::DetectionReport::DetectionReportClassification* dr = nullptr;
+
+    if( data->humanConfidence.length() )
+    {
+        dr = det->add_classification();
+        dr->set_type( "Human" );
+        dr->set_confidence( stof( data->humanConfidence ) );
+    }
+
+    if( data->vehicleConfidence.length() )
+    {
+        dr = det->add_classification();
+        dr->set_type( "Vehicle" );
+        dr->set_confidence( stof( data->vehicleConfidence ) );
+
+        if( data->vehicleTwoWheelConfidence.length() )
+        {
+            sap::DetectionReport_SubClass* sdr = dr->add_sub_class();
+            sdr->set_level( 1 );
+            sdr->set_type( "Vehicle Class 2 Wheel" );
+            sdr->set_confidence( stof( data->vehicleTwoWheelConfidence ) );
         }
 
-        if (data->vehicleFourWheelConfidence.length()) {
-            w->writeStartElement( "subClass" );
-            w->writeAttribute( "level", "1" );
-            w->writeAttribute( "type", "Vehicle Class" );
-            w->writeAttribute( "value", "4 Wheeled" );
-            w->writeStringElement( "confidence", data->vehicleFourWheelConfidence );
+        if( data->vehicleFourWheelConfidence.length() )
+        {
+            sap::DetectionReport_SubClass* sdr = dr->add_sub_class();
+            sdr->set_level( 1 );
+            sdr->set_type( "Vehicle Class 4 Wheel" );
+            sdr->set_confidence( stof( data->vehicleFourWheelConfidence ) );
 
-            WriteSubClassSize( w, "Heavy", data->vehicleFourWheelHeavyConfidence );
-            WriteSubClassSize( w, "Medium", data->vehicleFourWheelMediumConfidence );
-            WriteSubClassSize( w, "Light", data->vehicleFourWheelLightConfidence );
+            if( data->vehicleFourWheelHeavyConfidence.length() )
+            {
+                sap::DetectionReport_SubClass* sdr = dr->add_sub_class();
+                sdr->set_level( 2 );
+                sdr->set_type( "Heavy" );
+                sdr->set_confidence( stof( data->vehicleFourWheelHeavyConfidence ) );
+            }
 
-            w->writeEndElement();
+            if( data->vehicleFourWheelMediumConfidence.length() )
+            {
+                sap::DetectionReport_SubClass* sdr = dr->add_sub_class();
+                sdr->set_level( 2 );
+                sdr->set_type( "Medium" );
+                sdr->set_confidence( stof( data->vehicleFourWheelMediumConfidence ) );
+            }
+
+            if( data->vehicleFourWheelLightConfidence.length() )
+            {
+                sap::DetectionReport_SubClass* sdr = dr->add_sub_class();
+                sdr->set_level( 2 );
+                sdr->set_type( "Light" );
+                sdr->set_confidence( stof( data->vehicleFourWheelLightConfidence ) );
+            }
         }
-        w->writeEndElement();
     }
 
-    if (data->staticObjectConfidence.length()) {
-        w->writeStartElement( "class" );
-        w->writeAttribute( "type", "Static Object" );
-        w->writeStringElement( "confidence", data->staticObjectConfidence );
-        w->writeEndElement();
+    if( data->staticObjectConfidence.length() )
+    {
+        dr = det->add_classification();
+        dr->set_type( "Static Object" );
+        dr->set_confidence( stof( data->staticObjectConfidence ) );
     }
 
-    if (data->unknownConfidence.length()) {
-        w->writeStartElement( "class" );
-        w->writeAttribute( "type", "Unknown" );
-        w->writeStringElement( "confidence", data->unknownConfidence );
-        w->writeEndElement();
+    if( data->unknownConfidence.length() )
+    {
+        dr = det->add_classification();
+        dr->set_type( "Unknown" );
+        dr->set_confidence( stof( data->unknownConfidence ) );
     }
 
-    WriteBehaviour( w, "Walking", data->humanWalkingConfidence );
-    WriteBehaviour( w, "Running", data->humanRunningConfidence );
-    WriteBehaviour( w, "Loitering", data->humanLoiteringConfidence );
-    WriteBehaviour( w, "Crawling", data->humanCrawlingConfidence );
+    sap::DetectionReport_Behaviour* beh = nullptr;
 
-    return w->writeEndElement();
+    if( data->humanWalkingConfidence.length() )
+    {
+        beh = det->add_behaviour();
+        beh->set_type( "Walking" );
+        beh->set_confidence( stof( data->humanWalkingConfidence ) );
+    }
+
+    if( data->humanRunningConfidence.length() )
+    {
+        beh = det->add_behaviour();
+        beh->set_type( "Running" );
+        beh->set_confidence( stof( data->humanRunningConfidence ) );
+    }
+
+    if( data->humanLoiteringConfidence.length() )
+    {
+        beh = det->add_behaviour();
+        beh->set_type( "Loitering" );
+        beh->set_confidence( stof( data->humanLoiteringConfidence ) );
+    }
+
+    if( data->humanCrawlingConfidence.length() )
+    {
+        beh = det->add_behaviour();
+        beh->set_type( "Crawling" );
+        beh->set_confidence( stof( data->humanCrawlingConfidence ) );
+    }
+
+    return true;
+}
+
+
+bool DetectionReport::Write( ProtobufInterface::Writer *w )
+{
+    sap::SapientMessage msg;
+
+    if( !SetTimestamp( msg.mutable_timestamp(), data ) )
+    {
+        return false;
+    }
+
+    msg.set_node_id( data->nodeID );
+    msg.set_destination_id( data->destID );
+
+    if( !SetDetectionReport( msg.mutable_detection_report(), data ) )
+    {
+        return false;
+    }
+
+    if( msg.IsInitialized() )
+    {
+#ifdef WANT_PROTOBUF_DEBUG_JSON
+        std::string json;
+        google::protobuf::util::MessageToJsonString( msg, &json );
+        LOG( INFO ) << json;
+#endif
+
+        uint32_t len = msg.ByteSizeLong();
+        uint8_t *p_bytes = new uint8_t[ len + 4 ];
+        if( p_bytes != nullptr )
+        {
+            uint8_t *p = p_bytes;
+            *p++ = len & 0xFF;
+            *p++ = (len >> 8) & 0xFF;
+            *p++ = (len >> 16) & 0xFF;
+            *p++ = (len >> 24) & 0xFF;
+            if( msg.SerializeToArray( p_bytes + 4, len ) )
+            {
+                w->writeBytes( p_bytes, len + 4 );
+            }
+            else
+            {
+                LOG( ERROR ) << "Detection Report failed to serialize.";
+                return false;
+            }
+        }
+        else
+        {
+            LOG( ERROR ) << "Detection Report failed to allocate serialize buffer.";
+            return false;
+        }
+    }
+    else
+    {
+        LOG( ERROR ) << "Detection Report message not fully initialized.";
+        return false;
+    }
+
+    return true;
 }

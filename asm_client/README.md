@@ -10,6 +10,7 @@ It is intended that new sensors will be added to the software. At compile time, 
 ### Pre-requisites
 Linux - Scons is required to use the included build files
 Windows - Visual Studio is required to open the included solution
+Protobuf - The .proto files are included, but not the protobuf compiler or library
 
 ### Building
 #### Linux

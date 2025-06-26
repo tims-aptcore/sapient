@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "Utils/Ulid.h"
+
 #include <string>
 #include <vector>
 
@@ -47,7 +49,7 @@ struct AsmClientData
 
     struct Detection
     {
-        int id;
+        ulid::ULID id;
         bool updated;
         float range;
         float direction;
@@ -75,11 +77,13 @@ struct AsmClientData
 struct AsmClientTask
 {
     bool newTask;
-    std::string taskID;
+    ulid::ULID taskID;
     std::string rejectReason;
 
     float bearing;
     float horizontalExtent;
     float minRange;
     float maxRange;
+
+    enum { NONE, REGISTRATION, HEARTBEAT, TAKE_SNAPSHOT } command;
 };

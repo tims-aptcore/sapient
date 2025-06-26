@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Message.h"
-#include "XML/Writer.h"
+#include "ProtobufInterface/Writer.h"
 
 #include <string>
 
@@ -16,7 +16,7 @@ struct SensorRegistrationData
     // If parameters need to be changed they can be added here and in the configuration file
 
     std::string timestamp;
-    std::string sensorID; // Optional
+    std::string nodeID;
     std::string sensorType;
     std::string heartbeatInterval;
     std::string fieldOfViewType;
@@ -31,8 +31,8 @@ public:
         data = d;
     }
 
-    // Write message using XML Writer
-    virtual bool Write( XML::Writer *w );
+    // Write message using ProtobufInterface Writer
+    virtual bool Write( ProtobufInterface::Writer *w );
 
 private:
     SensorRegistrationData *data;

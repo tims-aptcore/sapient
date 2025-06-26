@@ -21,6 +21,7 @@ public:
 
 private:
     int GPIO_Read( int pin );
+    int GPIO_Read_Raspi( int pin );
 
     std::string sensors[MAX_SENSORS];
     int num_sensors;

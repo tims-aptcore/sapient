@@ -4,9 +4,9 @@
 //
 
 #include "Network.h"
-#include "XML/Reader.h"
-#include "XML/Writer.h"
-#include "XML/NetworkStream.h"
+#include "ProtobufInterface/Reader.h"
+#include "ProtobufInterface/Writer.h"
+#include "ProtobufInterface/NetworkStream.h"
 #include "SensorRegistration.h"
 #include "StatusReport.h"
 #include "SensorTask.h"
@@ -18,18 +18,23 @@
 #include "../Utils/Log.h"
 #include "../Utils/Config.h"
 #include "../Utils/Utils.h"
+#include "../Utils/Ulid.h"
 
 #include <math.h>
+
+#include <google/protobuf/stubs/common.h>
+
 
 Network::Network()
 {
     el::Loggers::getLogger( "network" );
     networkStream = nullptr;
-    reader = new XML::Reader();
-    writer = new XML::Writer();
+    reader = new ProtobufInterface::Reader();
+    writer = new ProtobufInterface::Writer();
     statusReportData = new StatusReportData();
     defaultTask = new AsmClientTask();
 }
+
 
 Network::~Network()
 {
@@ -41,9 +46,12 @@ Network::~Network()
     delete statusReportData;
 }
 
+
 void Network::Initialise( const char *configFilename )
 {
     LOG( INFO ) << "Initialising Network...";
+
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     CSimpleIniA config;
     SI_Error rc = config.LoadFile( configFilename );
@@ -60,6 +68,8 @@ void Network::Initialise( const char *configFilename )
     delete networkStream;
     networkStream = new NetworkStream( hostname, port );
 
+    nodeID = config.GetValue( "network", "nodeID", "" );
+    destID = config.GetValue( "network", "destID", "" );
     sensorType = config.GetValue( "network", "sensorType", "Unknown ASM" );
     registrationDelay = config.GetDoubleValue( "network", "registrationDelay", 0.5 );
     registrationTimeout = config.GetDoubleValue( "network", "registrationTimeout", 5.0 );
@@ -67,8 +77,6 @@ void Network::Initialise( const char *configFilename )
     detectionInterval = config.GetDoubleValue( "network", "detectionInterval", 1.0 );
     suppressDetectionsDuringTamper = (int)config.GetLongValue( "network", "suppressDetectionsDuringTamper", 0 );
     fieldOfViewType = config.GetValue( "network", "fieldOfViewType", "RangeBearing" );
-
-    statusReportData->activeTaskID = "0";
 
     statusReportData->coverage = new StatusReportLocationRBC();
     statusReportData->coverage->r = config.GetValue( "network", "coverageMaxRange", "100.0" );
@@ -78,13 +86,15 @@ void Network::Initialise( const char *configFilename )
     statusReportData->coverage->ve = config.GetValue( "network", "coverageVerticalExtent", "10.0" );
     statusReportData->coverage->eve = config.GetValue( "network", "coverageVerticalExtentError", "1.0" );
 
-    defaultTask->taskID = "0";
     defaultTask->bearing = strtof( statusReportData->coverage->az.c_str(), NULL );
     defaultTask->horizontalExtent = strtof( statusReportData->coverage->he.c_str(), NULL );
 
     defaultTask->minRange = (float)config.GetDoubleValue( "network", "defaultMinRange", 0.3 );
     defaultTask->maxRange = strtof( statusReportData->coverage->r.c_str(), NULL );
+
+    reader->setTimeouts( heartbeatInterval * 1000 / 3, heartbeatInterval * 3000 );        // Short and Long in ms
 }
+
 
 void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, struct AsmClientTask &task )
 {
@@ -97,78 +107,115 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
         }
     }
 
-    if (networkStream->IsOpen())
+    if( networkStream->IsOpen() )
     {
-        reader->open( networkStream );
-        if (reader->readStartElement( "SensorRegistrationACK" ))
+        reader->Attach( networkStream );
+        if( reader->GetMessage() )
         {
-            if (reader->readStartElement( "sensorID" ))
+            // Action the message
+            sap::SapientMessage *msg = &reader->msg;
+            std::string msg_node_id = msg->node_id();
+            std::string msg_dest_id = msg->destination_id();
+
+            // LOG( INFO ) << "Received message from node: " << msg_node_id << " to node: " << msg_dest_id;
+            if( msg_dest_id != nodeID )
             {
-                statusReportData->sensorID = "";
-                reader->readPCData( statusReportData->sensorID );
-                reader->readEndElement( false );
+                // LOG( INFO ) << "A received message was not targetted for our node id.";
+                return;
             }
-            reader->readEndElement( false );
-            status.network = AsmClientStatus::NETWORK_REGISTERED;
-            LOG( INFO ) << "Received registration ACK with sensorID " << statusReportData->sensorID;
 
-            task = *defaultTask;
-            status.newStatus = true;
-        }
-        else if (reader->readStartElement( "SensorTask" ))
-        {
-            LOG( INFO ) << "Received sensor task";
-            task.rejectReason = ParseSensorTask( task );
-            reader->readEndElement( true );
-
-            // Send the acknowledgement
-            SensorTaskACKData data;
-            data.timestamp = Get_Timestamp( std::chrono::system_clock::now() );
-            data.sensorID = statusReportData->sensorID;
-            data.taskID = task.taskID;
-            data.status = task.rejectReason.length() ? "Rejected" : "Accepted";
-            data.reason = task.rejectReason;
-
-            SensorTaskACK sensorRegistration( &data );
-            writer->open( networkStream );
-            sensorRegistration.Write( writer );
-            status.newStatus = true;
-        }
-        else if (reader->readStartElement( "Error" ))
-        {
-            LOG( WARNING ) << "Received error message";
-            if (reader->readStartElement( "timestamp" ))
-                reader->readEndElement( true );
-            if (reader->readStartElement( "packet" ))
-                reader->readEndElement( true );
-            if (reader->readStartElement( "errorMessage" ))
+            if( msg->has_registration_ack() )
             {
-                std::string value = "";
-                if (reader->readPCData( value )) {
-                    LOG( WARNING ) << value;
+                sap::RegistrationAck msg_ra = msg->registration_ack();
+                if( msg_ra.acceptance() )
+                {
+                    LOG( INFO ) << "Received registration ACK";
+
+                    // Set the new dest to this registered node for all subsequent messages going out
+                    destID = msg_node_id;
+
+                    status.network = AsmClientStatus::NETWORK_REGISTERED;
+
+                    task = *defaultTask;
+                    status.newStatus = true;
                 }
-                reader->readEndElement( false );
+                else
+                {
+                    // NETWORK_NOT_REGISTERED ? Why...
+                    int num_reasons = msg_ra.ack_response_reason_size();
+                    for( int n=0; n<num_reasons; n++ )
+                    {
+                        std::string reason = msg_ra.ack_response_reason(n);
+                        LOG( INFO ) << "Registration denied due to reason: " << reason;
+                    }
+                }
             }
-            reader->readEndElement( true );
-        }
-        else if (reader->readStartElement())
-        {
-            std::string value = "";
-            reader->getElementName( value );
-            LOG( WARNING ) << "Received unknown message: " << value;
-            reader->readEndElement( true );
-        }
+            else if( msg->has_task() )
+            {
+                sap::Task msg_task = msg->task();
 
-        if (status.network != AsmClientStatus::NETWORK_REGISTERED &&
-            Get_Time_Monotonic() > registrationTime + registrationTimeout)
-        {
-            LOG( WARNING ) << "Timeout waiting for registration";
-            networkStream->Close();
+                LOG( INFO ) << "Received a sensor task message";
+                task.rejectReason = ParseSensorTask( task, msg_task );
+
+                // Send the acknowledgement
+                SensorTaskACKData data;
+                data.timestamp = Get_Timestamp( std::chrono::system_clock::now() );
+                data.nodeID = nodeID;
+                data.destID = destID;
+                data.taskID = task.taskID;
+                data.status = task.rejectReason.length() ? "Rejected" : "Accepted";
+                data.reason = task.rejectReason;
+
+                SensorTaskACK sensorRegistration( &data );
+                writer->open( networkStream );
+                sensorRegistration.Write( writer );
+                status.newStatus = true;
+            }
+            else if( msg->has_alert_ack() )
+            {
+                LOG( INFO ) << "Received an alert ack message";
+            }
+            else if( msg->has_error() )
+            {
+                sap::Error msg_err = msg->error();
+                int num_error_messages = msg_err.error_message_size();
+                for( int n=0; n<num_error_messages; n++ )
+                {
+                    std::string err_msg = msg_err.error_message(n);
+                    LOG( WARNING ) << "Received an Error Report. Message: " << err_msg;
+                }
+            }
+            else if( msg->has_registration() )
+            {
+                LOG( WARNING ) << "Received a Registration message.";
+            }
+            else if( msg->has_status_report() )
+            {
+                LOG( WARNING ) << "Received a Status Report.";
+            }
+            else if( msg->has_detection_report() )
+            {
+                LOG( WARNING ) << "Received a Detection Report.";
+            }
+            else if( msg->has_task_ack() )
+            {
+                LOG( WARNING ) << "Received a task ack message.";
+            }
+            else if( msg->has_alert() )
+            {
+                LOG( WARNING ) << "Received an alert message.";
+            }
+
+            if (status.network != AsmClientStatus::NETWORK_REGISTERED &&
+                Get_Time_Monotonic() > registrationTime + registrationTimeout)
+            {
+                LOG( WARNING ) << "Timeout waiting for registration";
+                networkStream->Close();
+            }
         }
     }
     else // Try connecting
     {
-        statusReportData->sensorID = "";
         if (status.network != AsmClientStatus::NETWORK_CONNECTING &&
             status.network != AsmClientStatus::NETWORK_NO_LINK)
         {
@@ -185,7 +232,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
 
             SensorRegistrationData data;
             data.timestamp = Get_Timestamp( std::chrono::system_clock::now() );
-            data.sensorID = statusReportData->sensorID;
+            data.nodeID = nodeID;
             data.sensorType = sensorType;
             data.heartbeatInterval = std::to_string( heartbeatInterval );
             data.fieldOfViewType = fieldOfViewType;
@@ -224,6 +271,8 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
         if ((status.newStatus && currentTime > lastHeartbeatTime + detectionInterval) ||
             currentTime > lastHeartbeatTime + heartbeatInterval)
         {
+            statusReportData->nodeID = nodeID;
+            statusReportData->destID = destID;
             statusReportData->system = status.tamperStatus == AsmClientStatus::TAMPER_ACTIVE ? "Tamper" : "OK";
             statusReportData->info = status.newStatus ? "New" : "Unchanged";
             statusReportData->powerSource = status.powerSource;
@@ -284,7 +333,8 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
             struct DetectionReportData detectionReportData;
 
             detectionReportData.timestamp = data.timestamp;
-            detectionReportData.sensorID = statusReportData->sensorID;
+            detectionReportData.nodeID = nodeID;
+            detectionReportData.destID = destID;
             detectionReportData.taskID = statusReportData->activeTaskID;
 
             detectionReportData.rangeBearing = new DetectionReportLocationRB();
@@ -302,8 +352,7 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
 
                 if (status.tamperStatus == AsmClientStatus::TAMPER_ACTIVE && suppressDetectionsDuringTamper) continue;
 
-                detectionReportData.objectID = std::to_string( detection->id );
-
+                detectionReportData.objectID = detection->id;
                 detectionReportData.rangeBearing->r = std::to_string( detection->range );
                 detectionReportData.rangeBearing->er = "1.0";
                 detectionReportData.rangeBearing->az = std::to_string( bearing );
@@ -370,18 +419,14 @@ void Network::Loop( struct AsmClientStatus &status, struct AsmClientData &data, 
     }
 }
 
-std::string Network::ParseSensorTask( struct AsmClientTask &task )
+
+std::string Network::ParseSensorTask( struct AsmClientTask &task, sap::Task& msg_task )
 {
-    SensorTask sensorTask( reader );
+    SensorTask sensorTask( msg_task );
     const SensorTaskData taskData = sensorTask.GetSensorTaskData();
 
     task.newTask = true;
     task.taskID = taskData.taskID;
-
-    if (taskData.sensorID != statusReportData->sensorID)
-    {
-        return "Wrong sensorID";
-    }
 
     if (taskData.control == "Default")
     {

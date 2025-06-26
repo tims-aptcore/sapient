@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include "XML/Reader.h"
+#include "ProtobufInterface/Reader.h"
+#include "../Utils/Ulid.h"
 
 #include <string>
 
@@ -23,6 +24,13 @@ struct SensorTaskClassFilter
     std::string value;
 };
 
+struct SensorTaskBehaviourFilter
+{
+    std::string name;
+    std::string op;
+    std::string value;
+};
+
 struct SensorTaskRegion
 {
     std::string type;
@@ -34,10 +42,10 @@ struct SensorTaskRegion
     SensorTaskClassFilter classFilterAll;
     SensorTaskClassFilter classFilterHuman;
     SensorTaskClassFilter classFilterVehicle;
-    SensorTaskClassFilter behaviourFilterWalking;
-    SensorTaskClassFilter behaviourFilterRunning;
-    SensorTaskClassFilter behaviourFilterLoitering;
-    SensorTaskClassFilter behaviourFilterCrawling;
+    SensorTaskBehaviourFilter behaviourFilterWalking;
+    SensorTaskBehaviourFilter behaviourFilterRunning;
+    SensorTaskBehaviourFilter behaviourFilterLoitering;
+    SensorTaskBehaviourFilter behaviourFilterCrawling;
 };
 
 struct SensorTaskCommand
@@ -53,8 +61,7 @@ struct SensorTaskCommand
 
 struct SensorTaskData
 {
-    std::string sensorID;
-    std::string taskID;
+    ulid::ULID  taskID;
     std::string taskName;
     std::string taskDescription;
     std::string taskStartTime;
@@ -69,7 +76,7 @@ class SensorTask
 {
 public:
     // Constructs SensorTask message read from the reader
-    SensorTask( XML::Reader *reader );
+    SensorTask( sap::Task& msg_task );
 
     // Gets a copy of the SensorTaskData
     virtual SensorTaskData GetSensorTaskData() { return *data; }

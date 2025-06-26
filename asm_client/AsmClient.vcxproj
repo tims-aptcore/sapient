@@ -182,6 +182,7 @@
     <ClInclude Include="Utils\ConvertUTF.h" />
     <ClInclude Include="Utils\Log.h" />
     <ClInclude Include="Utils\TcpClient.h" />
+    <ClInclude Include="Utils\Ulid.h" />
     <ClInclude Include="Utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>

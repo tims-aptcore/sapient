@@ -9,16 +9,21 @@ if target == 'zynq':
   env.Append( CPPDEFINES = {'TARGET_ZYNQ':None} )
   env.Replace( CXX = '/path/to/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin/arm-linux-gnueabihf-g++' )
 elif target == 'rpi':
-  env.Append( CPPDEFINES = {'TARGET_RPI':None}, LIBS = 'wiringPi' )
+  env.Append( CPPDEFINES = {'TARGET_RPI':None} )
 elif target == 'clang':
   env.Replace( CXX = 'clang++-4.0' )
 elif not target == 'linux':
   print( "The target parameter must be set to a known value, e.g. 'scons target=rpi'" )
   Exit( 1 )
 
-# Define the EasyLogger log file name and specify the required C++11 standard
-env.Append( CPPDEFINES = {'ELPP_DEFAULT_LOG_FILE':'\\"asm_client.log\\"'}, CXXFLAGS = '-std=c++0x -Wall' ) 
+# Build the protobuf library and protobuf compiler
+libs = SConscript( 'Protobuf/google/protobuf/SConscript', 'env' )
 
-# Build and return the executable from all the sources files
-prog = env.Program( 'asm_client', Glob('*.cpp') + Glob('**/*.cpp')+ Glob('**/**/*.cpp') )
+# Create a static library from the generated protobuf source files
+env.Append( CPPPATH = ['Protobuf'] )
+libs += env.Library( 'sapient_msg', Glob('Protobuf/sapient_msg/*.cc') + Glob('Protobuf/sapient_msg/bsi_flex_335_v2_0/*.cc') )
+
+# Build and return the executable from all the source files
+env.Append( CPPDEFINES = {'ELPP_DEFAULT_LOG_FILE':'\\"asm_client.log\\"'}, CXXFLAGS = '-std=c++0x -Wall' )
+prog = env.Program( 'asm_client', Glob('*.cpp') + Glob('**/*.cpp') + Glob('**/**/*.cpp') + libs )
 Return( 'prog' )

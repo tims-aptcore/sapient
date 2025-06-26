@@ -6,15 +6,17 @@
 #pragma once
 
 #include "Message.h"
-#include "XML/Writer.h"
+#include "ProtobufInterface/Writer.h"
+#include "../Utils/Ulid.h"
 
 #include <string>
 
 struct SensorTaskACKData
 {
     std::string timestamp;
-    std::string sensorID;   // Optional
-    std::string taskID;     // Optional
+    std::string nodeID;
+    std::string destID;
+    ulid::ULID  taskID;     // Optional
     std::string status;     // Optional
     std::string reason;     // Optional
 };
@@ -28,8 +30,8 @@ public:
         data = d;
     }
 
-    // Write message using XML Writer
-    virtual bool Write( XML::Writer *w );
+    // Write message using ProtobufInterface Writer
+    virtual bool Write( ProtobufInterface::Writer *w );
 
 private:
     SensorTaskACKData *data;

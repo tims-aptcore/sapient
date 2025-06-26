@@ -6,7 +6,8 @@
 #pragma once
 
 #include "Message.h"
-#include "XML/Writer.h"
+#include "ProtobufInterface/Writer.h"
+#include "../Utils/Ulid.h"
 
 #include <string>
 
@@ -27,9 +28,10 @@ struct DetectionReportValue
 struct DetectionReportData
 {
     std::string timestamp;
-    std::string sensorID;
-    std::string objectID;
-    std::string taskID;
+    std::string nodeID;
+    std::string destID;
+    ulid::ULID  objectID;
+    ulid::ULID  taskID;
     std::string state;
 
     struct DetectionReportLocationRB *rangeBearing;
@@ -89,11 +91,10 @@ public:
         data = d;
     }
 
-    // Write message using XML Writer
-    virtual bool Write( XML::Writer *w );
+    // Write message using protobuf Writer
+    virtual bool Write( ProtobufInterface::Writer *w );
 
 private:
     DetectionReportData *data;
-    static unsigned int reportID;
 };
 

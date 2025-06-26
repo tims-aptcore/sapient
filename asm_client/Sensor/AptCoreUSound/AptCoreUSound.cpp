@@ -195,7 +195,6 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
     int track_loop, raw_det_loop;
     int match_found;
     int d;
-    static unsigned int uid = 0;
 
     // Search through provided raw data for a reasonable match
     for (raw_det_loop = 0; raw_det_loop < (int)raw_detections[detector].size(); raw_det_loop++)
@@ -219,14 +218,9 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
                     // The track is keeping a maintaining a lifetime. Cap it and report it.
                     tracks[detector][track_loop].lifetime = track_lifetime[detector];
                     // Asign it an ID
-                    if (tracks[detector][track_loop].id == 0)
+                    if( tracks[detector][track_loop].id.IsZero() )
                     {
-                        uid++;
-                        if (uid == 0) // just in case of rollover...
-                        {
-                            uid = 1;
-                        }
-                        tracks[detector][track_loop].id = uid;
+                        ulid::EncodeTimeNow( tracks[detector][track_loop].id );
                     }
                     // Report the track
                     tracks[detector][track_loop].active = 1;
@@ -241,7 +235,6 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
         if (match_found == 0)
         {
             struct Track_Struct new_track;
-            new_track.id = 0;
             new_track.range = raw_detections[detector][raw_det_loop].range;
             new_track.amplitude = raw_detections[detector][raw_det_loop].amplitude;
             new_track.lifetime = 2; // Will be decremented shortly.
@@ -261,7 +254,7 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
         {
             for (d = 0; d < (int)data.detections.size(); d++)
             {
-                if (tracks[detector][track_loop].id == data.detections[d].id)
+                if( ulid::CompareULIDs( tracks[detector][track_loop].id, data.detections[d].id ) == 0 )
                 {
                     detection = &data.detections[d];
                 }
@@ -282,8 +275,10 @@ void AptCoreUSound::Process_Tracks( int detector, struct AsmClientData &data )
             detection->humanConfidence = 0;
             detection->vehicleConfidence = 0;
             detection->unknownConfidence = 1;
+
+            std::string did = ulid::Marshal( detection->id );
             LOG( INFO ) << "TRACK. Detector: " << detector << " ID: "
-                << detection->id << " Range: "
+                << did << " Range: "
                 << detection->range;
         }
 

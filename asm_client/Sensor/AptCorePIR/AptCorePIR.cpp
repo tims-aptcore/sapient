@@ -12,6 +12,7 @@
 #include "../../Utils/Log.h"
 #include "../../Utils/Config.h"
 #include "../../Utils/Utils.h"
+#include "../../Utils/Ulid.h"
 
 AptCorePIR::AptCorePIR()
 {
@@ -24,11 +25,10 @@ AptCorePIR::~AptCorePIR()
 
 void AptCorePIR::Initialise( const char *configFilename )
 {
-    LOG( INFO ) << "AptCorePIR Initiliase called";
+    LOG( INFO ) << "AptCorePIR Initialise called";
     std::string sys_command;
     CSimpleIniA config;
     SI_Error rc = config.LoadFile( configFilename );
-    const char *sys_command_c;
     if (rc < 0)
     {
         LOG( ERROR ) << "Failed to load config file '" << configFilename << "'";
@@ -44,6 +44,7 @@ void AptCorePIR::Initialise( const char *configFilename )
     {
         LOG( INFO ) << "Configured for " << num_sensors << " sensors.";
     }
+#ifdef __unix__
     for (int t = 0; t < num_sensors; t++)
     {
         std::string Config_name = "sensor" + std::to_string( t + 1 );
@@ -56,25 +57,16 @@ void AptCorePIR::Initialise( const char *configFilename )
         {
             detection_num = 0;
             detection_active[t] = 0;
-            // Initialise the gpio pins. Output with pull-ups.
-            sys_command = "echo " + sensors[t].substr( 4 ) + " > /sys/class/gpio/export";
-            sys_command_c = sys_command.c_str();
-#ifdef __unix__
-            system( sys_command_c );
-#else
+            // Set up the gpio pin for input / pull-hi.
+            sys_command = "pinctrl set " + sensors[t].substr( 4 ) + " ip pu";
+            const char *sys_command_c = sys_command.c_str();
             LOG( INFO ) << sys_command_c;
-#endif
-            // Set up the gpio for input/ pull-hi. This is special command for rasp pi.
-            sys_command = "sudo raspi-gpio set " + sensors[t].substr( 4 ) + " pu";
-            sys_command_c = sys_command.c_str();
-#ifdef __unix__
             system( sys_command_c );
-#else
-            LOG( INFO ) << sys_command_c;
-#endif
         }
-
     }
+#else
+    LOG( ERROR ) << "Initialisation for GPIO has only been implemented for the Raspberry Pi. You will need to write a GPIO interface for your specific platform.\n";
+#endif
 }
 
 void AptCorePIR::Loop( const struct AsmClientTask &task, struct AsmClientData &data )
@@ -85,14 +77,20 @@ void AptCorePIR::Loop( const struct AsmClientTask &task, struct AsmClientData &d
 
     for (int t = 0; t < num_sensors; t++) // cycle through the sensors checking for detections.
     {
-        if (GPIO_Read( t ) != 0)
+        if (GPIO_Read_Raspi( t ) != 0)
         {
             if (detection_active[t] == 0)
             {
                 struct AsmClientData::Detection *detection = &data.detections[num_detections];
                 detection_active[t] = 1;
                 detection_num++;
-                detection->id = detection_num;
+
+                // Protobuf interface now uses ULID's for object IDs.
+                //detection->id = detection_num;
+                ulid::ULID det_ulid;
+                ulid::EncodeTimeNow( det_ulid );
+                detection->id = det_ulid;
+
                 LOG( INFO ) << "Detection sensor: " << t + 1 << " Detection number: " << detection_num;
                 detection->range = 6;
                 detection->direction = (float)(t * 90);
@@ -113,30 +111,49 @@ void AptCorePIR::Loop( const struct AsmClientTask &task, struct AsmClientData &d
     data.detections.resize( num_detections );
 }
 
-int AptCorePIR::GPIO_Read( int sensor )
+int AptCorePIR::GPIO_Read_Raspi( int sensor )
 {
-    int retval;
-    std::string value;
-    std::string getval_str = "/sys/class/gpio/" + sensors[sensor] + "/value";
-#ifdef __unix__
-    std::ifstream getvalgpio( getval_str.c_str() );
+    int retval = 0;
 
-    if (!getvalgpio.is_open()) {
-        LOG( ERROR ) << "Unable to open gpio file";
+    std::string str_gpio( sensors[sensor].substr(4) );
+    int gpio_num = std::stoi( str_gpio );
+    if( gpio_num < 0 || gpio_num > 53 )
+    {
+        LOG( ERROR ) << "GPIO Pin number is out of range";
+        return 0;
     }
 
-    getvalgpio >> value;
+#ifdef __unix__
+    char cmd_res[64] = { 0 };
+    std::string sys_command = "pinctrl get " + std::to_string( gpio_num );
+    const char *sys_command_c = sys_command.c_str();
 
-    if (value != "0")
+    // We need the result of the sys command
+    FILE *fp = popen( sys_command_c, "r" );
+    if( fp )
+    {
+        fgets( cmd_res, 64, fp );
+
+        pclose( fp );
+        fp = NULL;
+    }
+
+    // E.g: 4: ip    -- | lo // GPIO4 = input
+    std::string s( cmd_res );
+    std::string::size_type pos = s.find( "| " );
+    if( pos == std::string::npos )
+    {
+        LOG( ERROR ) << "GPIO read result is malformed";
+        return 0;
+    }
+
+    if( s[ pos+2 ] != 'l' )        // for "lo"
     {
         retval = 1;
     }
-    else
-    {
-        retval = 0;
-    }
 #else
-    retval = 0;
+    LOG( ERROR ) << "GPIO has only been implemented for the Raspberry Pi. You will need to write a GPIO interface for your specific platform.\n";
 #endif
+
     return retval;
 }

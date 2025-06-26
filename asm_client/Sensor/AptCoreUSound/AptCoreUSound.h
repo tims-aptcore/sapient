@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Sensor.h"
+#include "../../Utils/Ulid.h"
 
 #include <string>
 #include <vector>
@@ -42,7 +43,7 @@ private:
     };
     struct Track_Struct
     {
-        int id;
+        ulid::ULID id;
         int range;
         int amplitude;
         int lifetime;
